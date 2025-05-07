@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amadeus Team Game: Two Truths and a Lie</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #003087, #E6F0FA);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    .container {
+      max-width: 900px;
+      width: 100%;
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    #participants-box {
+      width: 220px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+      position: sticky;
+      top: 20px;
+      animation: slideInLeft 0.5s ease-out;
+    }
+    #participants-box h3 {
+      margin: 0 0 15px;
+      color: #005B82;
+      font-size: 20px;
+      font-weight: 600;
+      text-align: center;
+    }
+    #participants-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #participants-list li {
+      padding: 10px 0;
+      color: #374151;
+      font-weight: 400;
+      border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+      transition: color 0.3s ease;
+    }
+    #participants-list li:hover {
+      color: #005B82;
+    }
+    #participants-list li:last-child {
+      border-bottom: none;
+    }
+    #game-content {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 12px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+      padding: 30px;
+      animation: fadeInUp 0.5s ease-out;
+      position: relative;
+    }
+    #game-header {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #005B82;
+      font-size: 24px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    #game-header::before {
+      content: '✈️';
+      font-size: 20px;
+    }
+    #user-display {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      color: #005B82;
+      font-size: 16px;
+      background: rgba(245, 246, 245, 0.9);
+      padding: 8px 12px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    #leave-game-button {
+      background: linear-gradient(45deg, #FF3B30, #FF6B6B);
+      color: white;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 4px 8px rgba(255, 59, 48, 0.3);
+    }
+    #leave-game-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(255, 59, 48, 0.4);
+    }
+    h2 {
+      text-align: center;
+      color: #005B82;
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    h3 {
+      text-align: center;
+      color: #005B82;
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 15px;
+    }
+    input, select, button:not(#leave-game-button) {
+      padding: 12px;
+      margin: 10px 0;
+      width: 100%;
+      box-sizing: border-box;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+    input, select {
+      background: #F5F6F5;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    input:focus, select:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 91, 130, 0.3);
+      background: #FFFFFF;
+    }
+    button:not(#leave-game-button) {
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    button:not(#leave-game-button):hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    #join-game-button, #submitButton, #start-game-button {
+      background: linear-gradient(45deg, #005B82, #00A6A6);
+      color: white;
+    }
+    #join-game-button:hover, #submitButton:hover, #start-game-button:hover {
+      background: linear-gradient(45deg, #003F5C, #008080);
+    }
+    #reveal-button {
+      background: linear-gradient(45deg, #005B82, #00A6A6);
+      color: white;
+    }
+    #reveal-button:hover {
+      background: linear-gradient(45deg, #003F5C, #008080);
+    }
+    #pick-random-button {
+      background: linear-gradient(45deg, #00A6A6, #34C759);
+      color: white;
+    }
+    #pick-random-button:hover {
+      background: linear-gradient(45deg, #008080, #28A745);
+    }
+    #vote-options {
+      list-style: none;
+      padding: 0;
+    }
+    #vote-options li {
+      background: #F5F6F5;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    #vote-options li:hover {
+      background: #E5E7EB;
+      transform: translateX(5px);
+    }
+    #vote-options li.voted {
+      background: #D1FAE5;
+      box-shadow: 0 0 0 2px #34C759;
+    }
+    #vote-options li.voted::after {
+      content: '✔';
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #34C759;
+      font-size: 20px;
+      animation: checkmark 0.5s ease;
+    }
+    #vote-options li.lie {
+      background: #C8E6C9;
+      animation: pulse 1s infinite;
+      box-shadow: 0 0 0 2px #34C759;
+    }
+    #vote-result.error {
+      color: #FF3B30;
+      animation: shake 0.3s ease;
+      font-weight: 600;
+    }
+    #vote-results {
+      margin-top: 20px;
+      padding: 15px;
+      background: #F5F6F5;
+      border-radius: 8px;
+      animation: slideUp 0.5s ease;
+    }
+    #vote-progress, #waiting-message {
+      text-align: center;
+      color: #374151;
+      margin: 20px 0;
+      font-weight: 600;
+    }
+    #waiting-message {
+      font-size: 18px;
+      color: #34C759;
+      font-weight: 600;
+      background: #D1FAE5;
+      padding: 12px;
+      border-radius: 8px;
+      animation: highlight 1s ease;
+    }
+    #game-over-section {
+      text-align: center;
+      font-size: 24px;
+      color: #005B82;
+      font-weight: 700;
+      animation: fadeIn 0.5s ease-in;
+    }
+    #loading-section {
+      text-align: center;
+      font-size: 20px;
+      color: #005B82;
+      font-weight: 600;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 8px;
+    }
+    #game-footer {
+      text-align: center;
+      margin-top: 20px;
+      color: #6B7280;
+      font-size: 14px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes checkmark {
+      0% { opacity: 0; transform: scale(0); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    @keyframes highlight {
+      0% { background: #FFFFFF; }
+      50% { background: #D1FAE5; }
+      100% { background: #D1FAE5; }
+    }
+    @media (max-width: 600px) {
+      .container {
+        flex-direction: column;
+      }
+      #participants-box {
+        width: 100%;
+        position: static;
+      }
+      #game-content {
+        padding: 20px;
+      }
+      #user-display {
+        position: static;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        margin-bottom: 15px;
+      }
+      #leave-game-button {
+        width: auto;
+      }
+      h2 {
+        font-size: 24px;
+      }
+      h3 {
+        font-size: 20px;
+      }
+      input, select, button:not(#leave-game-button) {
+        font-size: 14px;
+      }
+      #waiting-message {
+        font-size: 16px;
+      }
+    }
+  </style>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
+    import { getDatabase, ref, push, set, onValue, update, get, remove } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCNmHaKvJiOkIeTfcmBWBsKyRNMToFhqhI",
+      authDomain: "amadeus-test-36c95.firebaseapp.com",
+      databaseURL: "https://amadeus-test-36c95-default-rtdb.firebaseio.com",
+      projectId: "amadeus-test-36c95",
+      storageBucket: "amadeus-test-36c95.firebasestorage.app",
+      messagingSenderId: "113589591805",
+      appId: "1:113589591805:web:5cc032e0833cd6b5e42894"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    let currentUser = null;
+    const host = "Bhargav";
+
+    function joinGame() {
+      const nameInput = document.getElementById('user-name').value.trim();
+      if (!nameInput) {
+        alert("Please enter your name.");
+        return;
+      }
+
+      const participantsRef = ref(database, `game/participants`);
+      const hostRef = ref(database, `game/host`);
+
+      get(participantsRef).then((snapshot) => {
+        const participants = snapshot.val() || {};
+        if (participants[nameInput]) {
+          alert("This name is already taken. Please choose another.");
+          return;
+        }
+
+        currentUser = nameInput;
+        localStorage.setItem('gameUserName', nameInput);
+
+        get(hostRef).then((hostSnapshot) => {
+          if (!hostSnapshot.exists()) {
+            set(hostRef, host).then(() => {
+              console.log(`Host set to ${host}`);
+            });
+          }
+
+          const participantRef = ref(database, `game/participants/${nameInput}`);
+          set(participantRef, { joined: true }).then(() => {
+            console.log(`Joined as ${nameInput}`);
+            updateUI();
+          }).catch((error) => {
+            console.error("Error joining game:", error);
+            alert("Error joining game: " + error.message);
+            localStorage.removeItem('gameUserName');
+            currentUser = null;
+            updateUI();
+          });
+        });
+      }).catch((error) => {
+        console.error("Error checking participants:", error);
+        alert("Error checking participants: " + error.message);
+        updateUI();
+      });
+    }
+
+    async function rejoinGame() {
+      console.log("Starting rejoinGame");
+      const savedName = localStorage.getItem('gameUserName');
+      console.log("Saved name from localStorage:", savedName);
+
+      if (!savedName) {
+        console.log("No saved name, showing entry section");
+        updateUI();
+        return;
+      }
+
+      currentUser = savedName;
+      console.log("Set currentUser to:", currentUser);
+
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const participantsRef = ref(database, `game/participants`);
+          const snapshot = await Promise.race([
+            get(participantsRef),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Firebase timeout")), 5000))
+          ]);
+          const participants = snapshot.val() || {};
+          console.log("Participants from Firebase:", participants);
+
+          if (!participants[savedName]) {
+            console.log(`Saved name ${savedName} not in participants, re-adding`);
+            const participantRef = ref(database, `game/participants/${savedName}`);
+            await set(participantRef, { joined: true });
+            console.log(`Re-added ${savedName} to participants`);
+          }
+
+          const hostRef = ref(database, `game/host`);
+          const hostSnapshot = await get(hostRef);
+          if (!hostSnapshot.exists()) {
+            await set(hostRef, host);
+            console.log(`Host set to ${host}`);
+          }
+
+          console.log("Rejoin successful, updating UI");
+          updateUI();
+          return;
+        } catch (error) {
+          console.error(`Rejoin attempt ${attempt} failed:`, error);
+          if (attempt === 3) {
+            localStorage.removeItem('gameUserName');
+            currentUser = null;
+            alert("Failed to rejoin game after retries: " + error.message);
+            updateUI();
+          }
+        }
+      }
+    }
+
+    async function leaveGame() {
+      if (!currentUser) {
+        console.log("No currentUser to leave");
+        return;
+      }
+
+      try {
+        if (currentUser === host) {
+          await set(ref(database, `game`), null);
+          console.log("Host left, cleared game node");
+        } else {
+          await remove(ref(database, `game/participants/${currentUser}`));
+          console.log(`Removed ${currentUser} from participants`);
+
+          const turnsRef = ref(database, `game/turns`);
+          const snapshot = await get(turnsRef);
+          const turns = snapshot.val() || {};
+          for (const turnKey in turns) {
+            await remove(ref(database, `game/turns/${turnKey}/votes/${currentUser}`));
+          }
+          console.log(`Removed ${currentUser}'s votes`);
+        }
+
+        localStorage.removeItem('gameUserName');
+        currentUser = null;
+        updateUI();
+        console.log("User left game, cleared localStorage");
+      } catch (error) {
+        console.error("Error leaving game:", error);
+        alert("Error leaving game: " + error.message);
+      }
+    }
+
+    function updateUI() {
+      const loadingSection = document.getElementById('loading-section');
+      const entrySection = document.getElementById('entry-section');
+      const gameSection = document.getElementById('game-section');
+      const userDisplay = document.getElementById('user-display');
+
+      console.log("Updating UI, currentUser:", currentUser);
+
+      loadingSection.style.display = 'none';
+      if (currentUser) {
+        entrySection.style.display = 'none';
+        gameSection.style.display = 'block';
+        userDisplay.style.display = 'flex';
+        document.getElementById('playerName').textContent = currentUser;
+        document.getElementById('current-user-name').textContent = currentUser;
+      } else {
+        entrySection.style.display = 'block';
+        gameSection.style.display = 'none';
+        userDisplay.style.display = 'none';
+      }
+    }
+
+    function submitStatements() {
+      const s1 = document.getElementById('s1').value.trim();
+      const s2 = document.getElementById('s2').value.trim();
+      const s3 = document.getElementById('s3').value.trim();
+      const lie = parseInt(document.getElementById('lieIndex').value);
+      const player = currentUser;
+
+      if (!s1 || !s2 || !s3) {
+        alert("Please fill all statement fields.");
+        return;
+      }
+      if (lie < 0 || lie > 2 || isNaN(lie)) {
+        alert("Please select a valid lie index (Statement 1, 2, or 3).");
+        return;
+      }
+
+      const statements = [s1, s2, s3];
+      const newTurnRef = push(ref(database, `game/turns`));
+      set(newTurnRef, {
+        playerName: player,
+        statements: statements,
+        lieIndex: lie,
+        revealed: false,
+        votes: {}
+      }).then(() => {
+        const playedUsersRef = ref(database, `game/playedUsers`);
+        get(playedUsersRef).then((snapshot) => {
+          const playedUsers = snapshot.val() || [];
+          if (!playedUsers.includes(player)) {
+            set(playedUsersRef, [...playedUsers, player]);
+          }
+        });
+      }).catch((error) => {
+        alert("Error saving data: " + error.message);
+      });
+    }
+
+    function resetTurn() {
+      document.getElementById('input-section').style.display = 'none';
+      document.getElementById('vote-section').style.display = 'none';
+      document.getElementById('vote-options').innerHTML = '';
+      document.getElementById('vote-result').textContent = '';
+      document.getElementById('vote-result').classList.remove('error');
+      document.getElementById('vote-results').innerHTML = '';
+      document.getElementById('vote-progress').textContent = '';
+      document.getElementById('waiting-message').textContent = '';
+      document.getElementById('s1').value = '';
+      document.getElementById('s2').value = '';
+      document.getElementById('s3').value = '';
+      document.getElementById('lieIndex').value = '0';
+      set(ref(database, `game/turns`), null);
+      set(ref(database, `game/currentTurn`), null);
+    }
+
+    async function handleVote(index, turnKey) {
+      const voteResult = document.getElementById('vote-result');
+      const voteRef = ref(database, `game/turns/${turnKey}/votes/${currentUser}`);
+
+      try {
+        await set(voteRef, { votedIndex: index });
+        voteResult.textContent = `Your vote for Statement ${index + 1} has been recorded!`;
+        voteResult.classList.remove('error');
+        const voteOptions = document.getElementById('vote-options').children;
+        for (let i = 0; i < voteOptions.length; i++) {
+          voteOptions[i].classList.remove('voted');
+          if (i === index) {
+            voteOptions[i].classList.add('voted');
+          }
+        }
+      } catch (error) {
+        voteResult.textContent = "Error recording vote: " + error.message;
+        voteResult.classList.add('error');
+      }
+    }
+
+    function revealAnswer(turnKey) {
+      update(ref(database, `game/turns/${turnKey}`), { revealed: true }).catch((error) => {
+        alert("Error revealing answer: " + error.message);
+      });
+    }
+
+    function pickRandomPlayer(participants, playedUsers) {
+      const participantNames = Object.keys(participants);
+      const eligibleNames = participantNames.filter(name => !playedUsers.includes(name));
+      if (eligibleNames.length === 0) {
+        set(ref(database, `game/gameState`), { status: 'over' });
+        return;
+      }
+      const randomIndex = Math.floor(Math.random() * eligibleNames.length);
+      const selectedPlayer = eligibleNames[randomIndex];
+      console.log(`Picking random player: ${selectedPlayer}, playedUsers: ${playedUsers}`);
+      set(ref(database, `game/currentTurn`), {
+        selectedPlayer,
+        previousPlayer: selectedPlayer
+      }).catch((error) => {
+        alert("Error selecting player: " + error.message);
+      });
+    }
+
+    function checkRevealButtonVisibility(turnExists) {
+      const revealButton = document.getElementById('reveal-button');
+      revealButton.style.display = (currentUser === host && turnExists) ? 'block' : 'none';
+    }
+
+    onValue(ref(database, `game`), (snapshot) => {
+      try {
+        const data = snapshot.val() || {};
+        console.log('Firebase onValue data:', data);
+
+        const gameOverSection = document.getElementById('game-over-section');
+        const inputSection = document.getElementById('input-section');
+        const voteSection = document.getElementById('vote-section');
+        const voteResults = document.getElementById('vote-results');
+        const voteProgress = document.getElementById('vote-progress');
+        const pickRandomButton = document.getElementById('pick-random-button');
+      //  const startGameButton = document.getElementById('start-game-button');
+        const waitingMessage = document.getElementById('waiting-message');
+        const participantsList = document.getElementById('participants-list');
+
+        if (!currentUser) {
+          console.log("No currentUser in onValue, waiting for rejoinGame");
+          return;
+        }
+
+        const participants = data.participants || {};
+        const playedUsers = data.playedUsers || [];
+        const participantNames = Object.keys(participants);
+        participantsList.innerHTML = participantNames.length
+          ? participantNames.map(name => `<li>${name}${name === host ? ' (Host)' : ''}</li>`).join('')
+          : `<li>${currentUser}${currentUser === host ? ' (Host)' : ''}</li>`;
+
+        const gameState = data.gameState || {};
+        if (gameState.status === 'over') {
+          gameOverSection.style.display = 'block';
+          inputSection.style.display = 'none';
+          voteSection.style.display = 'none';
+          voteResults.innerHTML = '';
+          voteProgress.textContent = '';
+        //  startGameButton.style.display = currentUser === host ? 'block' : 'none';
+          pickRandomButton.style.display = currentUser === host ? 'block' : 'none';
+          waitingMessage.textContent = '';
+          updateUI();
+          return;
+        }
+
+        const currentTurn = data.currentTurn || {};
+        const selectedPlayer = currentTurn.selectedPlayer;
+
+        const turns = data.turns || {};
+        const turnKeys = Object.keys(turns);
+        const latestTurnKey = turnKeys[turnKeys.length - 1];
+        const turn = latestTurnKey ? turns[latestTurnKey] : null;
+
+        console.log('Game state:', { selectedPlayer, turnKeys, turn, playedUsers, host });
+
+        //startGameButton.style.display = currentUser === host ? 'block' : 'none';
+        pickRandomButton.style.display = currentUser === host ? 'block' : 'none';
+
+        if (!turn) {
+          voteSection.style.display = 'none';
+          voteResults.innerHTML = '';
+          voteProgress.textContent = '';
+          if (selectedPlayer === currentUser) {
+            inputSection.style.display = 'block';
+            voteSection.style.display = 'none';
+            waitingMessage.textContent = 'You are selected to create the question!';
+            console.log('Showing input section for selected user:', currentUser);
+          } else {
+            inputSection.style.display = 'none';
+            voteSection.style.display = 'none';
+            if (selectedPlayer) {
+              waitingMessage.textContent = `${selectedPlayer} is creating the question...`;
+              console.log(`Waiting for ${selectedPlayer} to create question`);
+            } else {
+              if (currentUser === host) {
+                waitingMessage.textContent = 'Ready to start the game!';
+              } else {
+                waitingMessage.textContent = 'Waiting for Bhargav to start the game...';
+              }
+              console.log('No selected player, waiting for host to start');
+            }
+          }
+          gameOverSection.style.display = 'none';
+          checkRevealButtonVisibility(false);
+          updateUI();
+          return;
+        }
+
+        inputSection.style.display = 'none';
+        voteSection.style.display = 'block';
+        waitingMessage.textContent = '';
+        gameOverSection.style.display = 'none';
+
+        const playerName = turn.playerName;
+        const statements = turn.statements;
+        const lieIndex = turn.lieIndex;
+        const revealed = turn.revealed;
+        const votes = turn.votes || {};
+
+        const voteCount = Object.keys(votes).length;
+        voteProgress.textContent = `Votes received: ${voteCount}`;
+
+        const ul = document.getElementById('vote-options');
+        ul.innerHTML = '';
+        statements.forEach((text, index) => {
+          const li = document.createElement('li');
+          li.textContent = text;
+          li.style.cursor = revealed ? 'default' : 'pointer';
+          if (revealed && index === lieIndex) {
+            li.classList.add('lie');
+          } else if (!revealed && votes[currentUser] && votes[currentUser].votedIndex === index) {
+            li.classList.add('voted');
+          }
+          if (!revealed) {
+            li.onclick = () => handleVote(index, latestTurnKey);
+          }
+          ul.appendChild(li);
+        });
+
+        document.getElementById('playerLabel').textContent = playerName;
+        checkRevealButtonVisibility(true);
+
+        if (revealed) {
+          voteResults.innerHTML = `<p><strong>Answer:</strong> Statement ${lieIndex + 1} was the lie!</p>`;
+          const voteCounts = [0, 0, 0];
+          Object.values(votes).forEach(vote => {
+            voteCounts[vote.votedIndex]++;
+          });
+          voteResults.innerHTML += `
+            <p><strong>Voting Results:</strong></p>
+            <ul style="list-style: none; padding: 0;">
+              <li>Statement 1: ${voteCounts[0]} vote(s)</li>
+              <li>Statement 2: ${voteCounts[1]} vote(s)</li>
+              <li>Statement 3: ${voteCounts[2]} vote(s)</li>
+            </ul>
+          `;
+        } else {
+          voteResults.innerHTML = '';
+        }
+
+        updateUI();
+      } catch (error) {
+        console.error("Error processing Firebase data:", error);
+        alert("Error loading game data: " + error.message);
+      }
+    }, (error) => {
+      console.error("Firebase listener error:", error);
+      alert("Error connecting to database: " + error.message);
+    });
+
+    console.log("Initializing with loading state");
+    document.getElementById('loading-section').style.display = 'block';
+    document.getElementById('entry-section').style.display = 'none';
+    document.getElementById('game-section').style.display = 'none';
+    rejoinGame();
+
+    document.getElementById('join-game-button').addEventListener('click', joinGame);
+    document.getElementById('submitButton').addEventListener('click', submitStatements);
+   
+    document.getElementById('pick-random-button').addEventListener('click', () => {
+      if (currentUser !== host) {
+        alert("Only Bhargav can pick the next player!");
+        return;
+      }
+      get(ref(database, `game/participants`)).then((snapshot) => {
+        const participants = snapshot.val() || {};
+        if (Object.keys(participants).length > 0) {
+          resetTurn();
+          get(ref(database, `game/playedUsers`)).then((snapshot) => {
+            const playedUsers = snapshot.val() || [];
+            pickRandomPlayer(participants, playedUsers);
+          });
+        } else {
+          alert("No participants in the game!");
+        }
+      });
+    });
+    document.getElementById('reveal-button').addEventListener('click', async () => {
+      if (currentUser !== host) {
+        alert("Only Bhargav can reveal the answer!");
+        return;
+      }
+      const turnsRef = ref(database, 'game/turns');
+      const snapshot = await get(turnsRef);
+      const turns = snapshot.val() || {};
+      const turnKeys = Object.keys(turns);
+      const latestTurnKey = turnKeys[turnKeys.length - 1];
+      if (latestTurnKey) {
+        revealAnswer(latestTurnKey);
+      } else {
+        alert("No active turn to reveal!");
+      }
+    });
+    document.getElementById('leave-game-button').addEventListener('click', () => {
+      if (confirm("Are you sure you want to leave the game?")) {
+        leaveGame();
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div id="participants-box">
+      <h3>Participants</h3>
+      <ul id="participants-list"></ul>
+    </div>
+    <div id="game-content">
+      <div id="game-header">ITS Fun Time</div>
+      <div id="user-display" style="display:none;">
+        <span id="current-user-name"></span>
+        <button id="leave-game-button">Leave</button>
+      </div>
+      <div id="loading-section">
+        <p>Loading...</p>
+      </div>
+      <div id="entry-section" style="display:none;">
+        <h2>Join the Game</h2>
+        <p><strong>Your Name:</strong> <input type="text" id="user-name" placeholder="Enter your name" /></p>
+        <button id="join-game-button">Join Game</button>
+      </div>
+      <div id="game-section" style="display:none;">
+        <h2>Two Truths and a Lie</h2>
+        <p id="waiting-message"></p>
+        
+        <button id="pick-random-button" style="display:none;">Pick Random Player</button>
+        <div id="input-section" style="display:none;">
+          <p><strong>Player:</strong> <span id="playerName"></span></p>
+          <p>Statement 1: <input type="text" id="s1" placeholder="Enter first statement" /></p>
+          <p>Statement 2: <input type="text" id="s2" placeholder="Enter second statement" /></p>
+          <p>Statement 3: <input type="text" id="s3" placeholder="Enter third statement" /></p>
+          <p>
+            Which one is the <strong>lie?</strong>
+            <select id="lieIndex">
+              <option value="0">Statement 1</option>
+              <option value="1">Statement 2</option>
+              <option value="2">Statement 3</option>
+            </select>
+          </p>
+          <button id="submitButton">Submit</button>
+        </div>
+        <div id="vote-section" style="display:none;">
+          <h3><span id="playerLabel"></span>'s Statements</h3>
+          <p id="vote-progress"></p>
+          <ul id="vote-options" style="list-style: none; padding: 0;"></ul>
+          <p id="vote-result" style="font-weight:bold;"></p>
+          <button id="reveal-button" style="display:none;">Reveal Answer</button>
+          <div id="vote-results"></div>
+        </div>
+        <div id="game-over-section" style="display:none;">
+          <p>Game Over</p>
+        </div>
+      </div>
+      <div id="game-footer">© 2025. Two of these rights are reserved. One is a lie. Good luck guessing.</div>
+    </div>
+  </div>
+</body>
+</html>
