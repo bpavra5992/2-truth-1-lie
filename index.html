@@ -336,7 +336,7 @@
   </style>
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
-    import { getDatabase, ref, push, set, onValue, update, get, remove } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js';
+    import { getDatabase, ref, push, set, onValue, update, get, remove,runTransaction  } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyCNmHaKvJiOkIeTfcmBWBsKyRNMToFhqhI",
@@ -583,10 +583,27 @@
     }
 
     function revealAnswer(turnKey) {
-      update(ref(database, `game/turns/${turnKey}`), { revealed: true }).catch((error) => {
-        alert("Error revealing answer: " + error.message);
-      });
-    }
+	  const turnRef = ref(database, `game/turns/${turnKey}`);
+
+	  get(turnRef).then((snapshot) => {
+		const turnData = snapshot.val();
+		const lieIndex = turnData.lieIndex;
+		const votes = turnData.votes || {};
+
+		return update(turnRef, { revealed: true }).then(() => {
+		  for (const [user, vote] of Object.entries(votes)) {
+			if (vote.votedIndex === lieIndex) {
+			  const userStatsRef = ref(database, `game/stats/${user}/rightGuesses`);
+			  runTransaction(userStatsRef, (current) => {
+				return (current || 0) + 1;
+			  });
+			}
+		  }
+		});
+	  }).catch((error) => {
+		alert("Error revealing answer: " + error.message);
+	  });
+	}
 
     function pickRandomPlayer(participants, playedUsers) {
       const participantNames = Object.keys(participants);
@@ -634,10 +651,24 @@
         const participants = data.participants || {};
         const playedUsers = data.playedUsers || [];
         const participantNames = Object.keys(participants);
+		const totalCountElem = document.getElementById('total-participants-count');
+		if (totalCountElem) {
+		  totalCountElem.textContent = `${participantNames.length}`;
+		}
         participantsList.innerHTML = participantNames.length
-          ? participantNames.map(name => `<li>${name}${name === host ? ' (Host)' : ''}</li>`).join('')
-          : `<li>${currentUser}${currentUser === host ? ' (Host)' : ''}</li>`;
-
+			? participantNames.map(name => `<li>${name}${name === host ? ' (Host)' : ''}</li>`).join('')
+				: `<li>${currentUser}${currentUser === host ? ' (Host)' : ''}</li>`;
+				
+		Promise.all(participantNames.map(async name => {
+		  const statRef = ref(database, `game/stats/${name}/rightGuesses`);
+		  const snap = await get(statRef);
+		  const rightGuesses = snap.exists() ? snap.val() : 0;
+		  return `<li>${name}${name === host ? ' (Host)' : ''} – ✅ ${rightGuesses}</li>`;
+		})).then(items => {
+		  participantsList.innerHTML = items.join('');
+		});
+  
+  
         const gameState = data.gameState || {};
         if (gameState.status === 'over') {
           gameOverSection.style.display = 'block';
@@ -810,7 +841,7 @@
 <body>
   <div class="container">
     <div id="participants-box">
-      <h3>Participants</h3>
+      <h3>Participants: (<span id="total-participants-count"></span>)</h3>
       <ul id="participants-list"></ul>
     </div>
     <div id="game-content">
