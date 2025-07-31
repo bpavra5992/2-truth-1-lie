@@ -352,6 +352,49 @@
     const database = getDatabase(app);
     let currentUser = null;
     const host = "Bhargav";
+	
+	const roastMessages = [
+      "Oops! That’s as wrong as pineapple on pizza 🍍🍕",
+      "Try again, Nostradamus 🙃",
+      "Liar Liar... not their pants 😆",
+      "Well, that guess aged like milk 🥴",
+      "Close... but not even remotely! 🤡",
+	  "Well... that wasn’t it. But good try? 😬",
+"That guess was more off than a broken clock 🕰️",
+"You just hugged the lie and called it truth 😆",
+"Swing and a miss! ⚾ Better luck next fib.",
+"That lie really sold itself to you 😂",
+"Are you guessing with your eyes closed? 💤",
+"Lies 1 – You 0 💀",
+"Nice try... if this was opposite day 🌀",
+"Even the lie was surprised you picked it 😮",
+"That's not the truth... and it knew it 😏"
+    ];
+
+    const praiseMessages = [
+      "💥 Mind. Blown. You psychic?",
+      "You saw through the lies like Sherlock Holmes 🔍",
+      "Are you a human lie detector? 💡",
+      "Correct! Who even are you?! 🎯",
+      "Winner winner, truth for dinner 🏆",
+	  "Truth sniper! 🔫 Right between the lies!",
+	"You cracked that like an egg on Sunday morning 🥚👏",
+	"Lie detected and neutralized 🛡️",
+	"You crushed it! 💪 You're basically lie-proof.",
+	"Truth-teller alert 🚨 We see you, Sherlock!",
+	"Correctamundo! 🧠💥",
+	"You got it! Must be reading minds again 🧙",
+	"You smell lies like a bloodhound 🐶",
+	"Truth-telling level: GOD MODE 😎",
+	"🧠 Genius alert! That was sharp!"
+    ];
+	
+	function showFunnyMessage(msg) {
+      const el = document.getElementById("funny-message");
+      el.textContent = msg;
+      //setTimeout(() => { el.textContent = ""; }, 0000);
+    }
+
 
     function joinGame() {
       const nameInput = document.getElementById('user-name').value.trim();
@@ -594,10 +637,17 @@
 		  for (const [user, vote] of Object.entries(votes)) {
 			if (vote.votedIndex === lieIndex) {
 			  const userStatsRef = ref(database, `game/stats/${user}/rightGuesses`);
-			  runTransaction(userStatsRef, (current) => {
-				return (current || 0) + 1;
-			  });
-			}
+			  runTransaction(userStatsRef, (current) => (current || 0) + 1);
+			  if (user === currentUser) {
+                const praise = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
+                showFunnyMessage(praise);
+              }
+			} else {
+              if (user === currentUser) {
+                const roast = roastMessages[Math.floor(Math.random() * roastMessages.length)];
+                showFunnyMessage(roast);
+              }
+            }
 		  }
 		});
 	  }).catch((error) => {
@@ -606,6 +656,7 @@
 	}
 
     function pickRandomPlayer(participants, playedUsers) {
+		document.getElementById("funny-message").textContent = "";
       const participantNames = Object.keys(participants);
       const eligibleNames = participantNames.filter(name => !playedUsers.includes(name));
       if (eligibleNames.length === 0) {
@@ -655,18 +706,31 @@
 		if (totalCountElem) {
 		  totalCountElem.textContent = `${participantNames.length}`;
 		}
-        participantsList.innerHTML = participantNames.length
-			? participantNames.map(name => `<li>${name}${name === host ? ' (Host)' : ''}</li>`).join('')
-				: `<li>${currentUser}${currentUser === host ? ' (Host)' : ''}</li>`;
 				
 		Promise.all(participantNames.map(async name => {
 		  const statRef = ref(database, `game/stats/${name}/rightGuesses`);
 		  const snap = await get(statRef);
 		  const rightGuesses = snap.exists() ? snap.val() : 0;
+
+		  const funnyNicknames = [
+			"The Guessinator",
+			"Lie Sniper",
+			"Captain Truth",
+			"Bluff Buster",
+			"Clairvoyant Cat 🐱"
+		  ];
+
+		  const nickname = funnyNicknames[name.length % funnyNicknames.length];
+		  
+		  
 		  return `<li>${name}${name === host ? ' (Host)' : ''} – ✅ ${rightGuesses}</li>`;
 		})).then(items => {
 		  participantsList.innerHTML = items.join('');
 		});
+		
+		participantsList.innerHTML = participantNames.length
+			? participantNames.map(name => `<li>${name}${name === host ? ' (Host)' : ''}</li>`).join('')
+				: `<li>${currentUser}${currentUser === host ? ' (Host)' : ''}</li>`;
   
   
         const gameState = data.gameState || {};
@@ -836,6 +900,33 @@
         leaveGame();
       }
     });
+	
+	let lastProcessedTurnKey = null;
+
+	onValue(ref(database, 'game/turns'), (snapshot) => {
+	  const turns = snapshot.val() || {};
+	  const turnKeys = Object.keys(turns);
+	  if (turnKeys.length === 0) return;
+
+	  const latestKey = turnKeys[turnKeys.length - 1];
+	  const latestTurn = turns[latestKey];
+
+	  // Avoid duplicate messages
+	  if (!latestTurn.revealed || latestKey === lastProcessedTurnKey || !currentUser) return;
+
+	  lastProcessedTurnKey = latestKey;
+
+	  const userVote = latestTurn.votes?.[currentUser]?.votedIndex;
+	  if (userVote === undefined) return;
+
+	  if (userVote === latestTurn.lieIndex) {
+		const praise = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
+		showFunnyMessage(praise);
+	  } else {
+		const roast = roastMessages[Math.floor(Math.random() * roastMessages.length)];
+		showFunnyMessage(roast);
+	  }
+	});
   </script>
 </head>
 <body>
@@ -884,12 +975,15 @@
           <ul id="vote-options" style="list-style: none; padding: 0;"></ul>
           <p id="vote-result" style="font-weight:bold;"></p>
           <button id="reveal-button" style="display:none;">Reveal Answer</button>
+		  <p id="funny-message" style="background: aqua;text-align: center;padding:5px"></p>
           <div id="vote-results"></div>
         </div>
         <div id="game-over-section" style="display:none;">
           <p>Game Over</p>
         </div>
       </div>
+	  
+	  
       <div id="game-footer">© 2025. Two of these rights are reserved. One is a lie. Good luck guessing.</div>
     </div>
   </div>
