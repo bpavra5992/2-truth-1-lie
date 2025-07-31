@@ -360,15 +360,15 @@
       "Well, that guess aged like milk 🥴",
       "Close... but not even remotely! 🤡",
 	  "Well... that wasn’t it. But good try? 😬",
-"That guess was more off than a broken clock 🕰️",
-"You just hugged the lie and called it truth 😆",
-"Swing and a miss! ⚾ Better luck next fib.",
-"That lie really sold itself to you 😂",
-"Are you guessing with your eyes closed? 💤",
-"Lies 1 – You 0 💀",
-"Nice try... if this was opposite day 🌀",
-"Even the lie was surprised you picked it 😮",
-"That's not the truth... and it knew it 😏"
+	"That guess was more off than a broken clock 🕰️",
+	"Swing and a miss! ⚾ Better luck next fib.",
+	"Are you guessing with your eyes closed? 💤",
+	"Nice try... if this was opposite day 🌀",
+	"Even the lie was surprised you picked it 😮",
+	"That's not the truth... and it knew it 😏",
+	"Even a coin flip had better odds 😂",
+"That guess made the lie blush 🫣",
+"Put that guess back where it came from 🙃"
     ];
 
     const praiseMessages = [
@@ -386,7 +386,11 @@
 	"You got it! Must be reading minds again 🧙",
 	"You smell lies like a bloodhound 🐶",
 	"Truth-telling level: GOD MODE 😎",
-	"🧠 Genius alert! That was sharp!"
+	"🧠 Genius alert! That was sharp!",
+	"Mic drop. You nailed it 🎤💥",
+	"Was that a guess or psychic powers? 🔮",
+	"You cracked that like it was open-source code 💻",
+	"Your brain deserves a standing ovation 👏🧠"
     ];
 	
 	function showFunnyMessage(msg) {
@@ -640,12 +644,12 @@
 			  runTransaction(userStatsRef, (current) => (current || 0) + 1);
 			  if (user === currentUser) {
                 const praise = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
-                showFunnyMessage(praise);
+                //showFunnyMessage(praise);
               }
 			} else {
               if (user === currentUser) {
                 const roast = roastMessages[Math.floor(Math.random() * roastMessages.length)];
-                showFunnyMessage(roast);
+                //showFunnyMessage(roast);
               }
             }
 		  }
